@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>STUCET – EAPCET Papers Hub</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap"
+        rel="stylesheet" />
+        <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav>
+        <a href="#" class="nav-logo">STU<span>CET</span></a>
+        <div class="nav-links">
+            <a href="#" onclick="setActive(this)">Home</a>
+            <a href="#" class="active-ap" id="nav-ap" onclick="filterState('AP', this)">AP</a>
+            <a href="#" class="active-ts" id="nav-ts" onclick="filterState('TS', this)">TS</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-tag">EAPCET Question Papers</div>
+        <h1>STU<span class="highlight">CET</span></h1>
+        <p class="hero-sub">We bring all EAPCET papers here — organized by year, date, and shift.</p>
+        <p class="hero-sub">(Only for B.Tech students)</p>
+        <div class="state-selector">
+            <p>You are from?</p>
+            <button class="state-btn ts active" onclick="filterState('TS', null)">
+                <span class="dot"></span> Telangana (TS)
+            </button>
+            <button class="state-btn ap" onclick="filterState('AP', null)">
+                <span class="dot"></span> Andhra Pradesh (AP)
+            </button>
+        </div>
+    </section>
+
+    <!-- PAPERS -->
+    <section class="papers-section" id="papers">
+        <div class="section-header">
+            <div class="section-title">
+                Papers
+                <span class="state-badge ts" id="active-badge">TS</span>
+            </div>
+        </div>
+        <div id="papers-container"></div>
+    </section>
+
+    <!-- CONTRIBUTE -->
+    <section style="padding: 0 5%;">
+        <div class="contribute">
+            <h2>Want to help students?</h2>
+            <p>Add extra question papers you have and help thousands of students prepare better.</p>
+            <button class="add-btn" onclick="openModal()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M12 5v14M5 12h14" />
+                </svg>
+                Add Papers
+            </button>
+        </div>
+    </section>
+
+    <footer>
+        © 2025 STUCET · Made for students, by students
+    </footer>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+        <div class="modal">
+            <h3>Add Question Paper</h3>
+            <p>Fill in the details and submit. Our team will verify and publish it.</p>
+
+            <div class="form-group">
+                <label>STATE</label>
+                <select id="m-state">
+                    <option value="TS">Telangana (TS)</option>
+                    <option value="AP">Andhra Pradesh (AP)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>YEAR</label>
+                <input type="number" id="m-year" placeholder="e.g. 2024" min="2000" max="2030" />
+            </div>
+            <div class="form-group">
+                <label>DATE</label>
+                <input type="text" id="m-date" placeholder="e.g. May 6" />
+            </div>
+            <div class="form-group">
+                <label>SHIFT</label>
+                <select id="m-shift">
+                    <option>1st Shift</option>
+                    <option>2nd Shift</option>
+                    <option>3rd Shift</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>DRIVE LINK / URL</label>
+                <input type="url" id="m-link" placeholder="https://drive.google.com/..." />
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-submit" onclick="submitPaper()">Submit Paper</button>
+            </div>
+        </div>
+    </div>
+<script src="script.js"></script>
+</body>
+
+</html>
