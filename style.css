@@ -44,12 +44,8 @@ nav {
 }
 
 .nav-logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1.35rem;
-    letter-spacing: -0.5px;
-    color: var(--ink);
-    text-decoration: none;
+    height: 52px;
+    border-radius: 30px;
 }
 
 .nav-logo span {
