@@ -1,4 +1,32 @@
-// ── DATA ──
+// ── SUPABASE SETUP ──
+const SUPABASE_URL = 'https://mhdfghfksbnqltoqgsdw.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1oZGZnaGZrc2JucWx0b3Fnc2R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MzgwNDksImV4cCI6MjA5MDExNDA0OX0.eiL5HC1OjbmlH0lCOjHaXVr0QrkF4ulihSNeT_xmlwk';
+
+async function savePaperToDB(paper) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/papers`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(paper)
+    });
+    return res.ok;
+}
+
+async function loadPapersFromDB() {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/papers?select=*`, {
+        headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+        }
+    });
+    return await res.json();
+}
+
+// ── DEMO DATA ──
 const papersData = {
     TS: [
         {
@@ -239,7 +267,7 @@ function closeModal() {
 function closeModalOutside(e) {
     if (e.target.id === 'modal') closeModal();
 }
-function submitPaper() {
+async function submitPaper() {
     const state = document.getElementById('m-state').value;
     const year = parseInt(document.getElementById('m-year').value);
     const date = document.getElementById('m-date').value;
@@ -251,19 +279,45 @@ function submitPaper() {
         return;
     }
 
-    // Add to data
-    let yearGroup = papersData[state].find(g => g.year === year);
-    if (!yearGroup) {
-        yearGroup = { year, papers: [] };
-        papersData[state].unshift(yearGroup);
-        papersData[state].sort((a, b) => b.year - a.year);
-    }
-    yearGroup.papers.push({ date, shift, link });
+    const success = await savePaperToDB({ state, year: String(year), date, shift, drive_link: link });
 
-    closeModal();
-    if (currentState === state) renderPapers();
-    alert('Thank you! Your submission has been received.');
+    if (success) {
+        // Also add to local data so it shows immediately
+        let yearGroup = papersData[state].find(g => g.year === year);
+        if (!yearGroup) {
+            yearGroup = { year, papers: [] };
+            papersData[state].unshift(yearGroup);
+            papersData[state].sort((a, b) => b.year - a.year);
+        }
+        yearGroup.papers.push({ date, shift, link });
+
+        closeModal();
+        if (currentState === state) renderPapers();
+        alert('Thank you! Your paper has been saved.');
+    } else {
+        alert('Something went wrong. Please try again.');
+    }
 }
 
 // ── INIT ──
-renderPapers();
+async function init() {
+    const dbPapers = await loadPapersFromDB();
+
+    dbPapers.forEach(p => {
+        const state = p.state;
+        const year = parseInt(p.year);
+        if (!papersData[state]) return;
+
+        let yearGroup = papersData[state].find(g => g.year === year);
+        if (!yearGroup) {
+            yearGroup = { year, papers: [] };
+            papersData[state].push(yearGroup);
+            papersData[state].sort((a, b) => b.year - a.year);
+        }
+        yearGroup.papers.push({ date: p.date, shift: p.shift, link: p.drive_link });
+    });
+
+    renderPapers();
+}
+
+init();
