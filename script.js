@@ -204,6 +204,12 @@ function filterState(state, navEl) {
     document.getElementById('papers').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+// 🔧 CLEAN LINK (removes # and invalid stuff)
+function cleanLink(link) {
+    if (!link) return '';
+    return link.replace(/^#/, '').trim();
+}
+
 function renderPapers() {
     const container = document.getElementById('papers-container');
     const data = papersData[currentState] || [];
@@ -215,6 +221,7 @@ function renderPapers() {
         div.style.animationDelay = (idx * 0.07) + 's';
 
         const count = yearGroup.papers.length;
+
         div.innerHTML = `
         <div class="year-header" onclick="toggleYear(this)">
           <div>
@@ -223,27 +230,45 @@ function renderPapers() {
           </div>
           <button class="year-toggle">+</button>
         </div>
+
         <div class="year-body">
-          ${yearGroup.papers.map(p => `
-            <div class="paper-row">
-              <div class="paper-info">
-                <span class="paper-name">${p.date}</span>
-                <span class="paper-shift">
-                  <span class="shift-dot"></span>${p.shift}
-                </span>
+          ${yearGroup.papers.map(p => {
+            const link = cleanLink(p.link);
+            const isValid = link.startsWith('http');
+
+            return `
+              <div class="paper-row">
+                <div class="paper-info">
+                  <span class="paper-name">${p.date}</span>
+                  <span class="paper-shift">
+                    <span class="shift-dot"></span>${p.shift}
+                  </span>
+                </div>
+
+                <div class="btn-group">
+                  
+                  <!-- OPEN BUTTON -->
+                  <a 
+                    href="${isValid ? link : '#'}"
+                    ${isValid ? 'target="_blank"' : ''}
+                    class="open-btn"
+                  >
+                    Open
+                  </a>
+
+                  <!-- DOWNLOAD BUTTON -->
+                  <a 
+                    href="${isValid ? driveDownloadLink(link) : '#'}"
+                    ${isValid ? 'target="_blank"' : ''}
+                    class="dl-btn"
+                  >
+                    Download
+                  </a>
+
+                </div>
               </div>
-              <div class="btn-group">
-                <a href="${p.link !== '#' ? p.link : 'javascript:void(0)'}" target="_blank" class="open-btn" title="Open in Google Drive">
-                  <svg viewBox="0 0 24 24"><path d="M14 3v2H5v14h14v-9h2v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10zm7-1v6h-2V5.414l-9.293 9.293-1.414-1.414L17.586 4H14V2h7z"/></svg>
-                  Open
-                </a>
-                <a href="${p.link !== '#' ? driveDownloadLink(p.link) : 'javascript:void(0)'}" class="dl-btn" title="Download PDF" ${p.link !== '#' ? 'target="_blank"' : ''}>
-                  <svg viewBox="0 0 24 24"><path d="M12 16l-4-4h2.5V4h3v8H16l-4 4zm-6 2h12v2H6v-2z"/></svg>
-                  Download
-                </a>
-              </div>
-            </div>
-          `).join('')}
+              `;
+        }).join('')}
         </div>
       `;
 
@@ -272,7 +297,7 @@ async function submitPaper() {
     const year = parseInt(document.getElementById('m-year').value);
     const date = document.getElementById('m-date').value;
     const shift = document.getElementById('m-shift').value;
-    const link = document.getElementById('m-link').value;
+    const link = cleanLink(document.getElementById('m-link').value);
 
     if (!year || !date || !link) {
         alert('Please fill in all fields.');
