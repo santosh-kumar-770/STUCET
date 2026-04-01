@@ -26,6 +26,83 @@ async function loadPapersFromDB() {
     return await res.json();
 }
 
+// ── DOWNLOAD COUNTER ──
+// Uses Supabase to persist download counts
+// Table needed: downloads (id serial, paper_key text unique, count int default 0)
+// Falls back to localStorage if DB fails
+
+const downloadCounts = {}; // in-memory cache
+
+async function incrementDownload(paperKey) {
+    try {
+        // Try to upsert into Supabase downloads table
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_download`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`
+            },
+            body: JSON.stringify({ paper_key: paperKey })
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            downloadCounts[paperKey] = data || (downloadCounts[paperKey] || 0) + 1;
+        } else {
+            throw new Error('DB failed');
+        }
+    } catch {
+        // Fallback: localStorage
+        const stored = parseInt(localStorage.getItem('dl_' + paperKey) || '0');
+        const newVal = stored + 1;
+        localStorage.setItem('dl_' + paperKey, newVal);
+        downloadCounts[paperKey] = newVal;
+    }
+
+    // Update the counter badge in the DOM
+    const badge = document.querySelector(`[data-paper-key="${CSS.escape(paperKey)}"] .dl-count`);
+    if (badge) {
+        badge.textContent = formatCount(downloadCounts[paperKey]);
+        badge.classList.add('pop');
+        setTimeout(() => badge.classList.remove('pop'), 400);
+    }
+}
+
+async function loadDownloadCounts() {
+    try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/downloads?select=paper_key,count`, {
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`
+            }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            data.forEach(row => {
+                downloadCounts[row.paper_key] = row.count;
+            });
+        }
+    } catch {
+        // silently fail, counts will just show 0 or from localStorage
+    }
+}
+
+function getDownloadCount(paperKey) {
+    if (downloadCounts[paperKey] !== undefined) return downloadCounts[paperKey];
+    // fallback localStorage
+    return parseInt(localStorage.getItem('dl_' + paperKey) || '0');
+}
+
+function formatCount(n) {
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+    return n;
+}
+
+function makePaperKey(state, year, date, shift) {
+    return `${state}_${year}_${date}_${shift}`.replace(/\s+/g, '_');
+}
+
 // ── DEMO DATA ──
 const papersData = {
     TS: [
@@ -76,7 +153,7 @@ const papersData = {
                 { date: "May 09", shift: "1st Shift", link: "#https://drive.google.com/file/d/12FJmVbvXcNqqebD22JyigHs1L7y_1Ue1/view" },
                 { date: "May 09", shift: "2nd Shift", link: "#https://drive.google.com/file/d/1H9CG-qW0We_koUTsaxOtexIObhzFubDP/view" },
                 { date: "May 10", shift: "1st Shift", link: "#https://drive.google.com/file/d/1lwpfkIZiYENI4QXkAM2S9ShQNNlaFvJk/view" },
-                { date: "May 10", shift: "2nd Shift", link: "#https://drive.google.com/file/d/1xfdIkJpiPQ3V6uuNsUWD-ya1r7kl1SIn/view" },
+                { date: "May 10", shift: "2nd Shift", link: "#https://drive.google.com/file/d/1xfdIkJpiPQ3V6uuNsUWD-07r5VuKnKTUwy/view" },
                 { date: "May 11", shift: "1st Shift", link: "#https://drive.google.com/file/d/1CVjOKVdXQUWaOsO4seYTR1xD0n2J5tbe/view" },
                 { date: "May 11", shift: "2nd Shift", link: "#https://drive.google.com/file/d/18DRdU3bOEXmCw1ovBE0BS6_VuKnKTUwy/view" },
             ]
@@ -181,22 +258,65 @@ function driveDownloadLink(url) {
 }
 
 let currentState = 'TS';
+let currentSearch = '';
 
+// ── SEARCH ──
+function handleSearch(val) {
+    currentSearch = val.trim();
+    const clearBtn = document.getElementById('search-clear');
+    clearBtn.style.display = currentSearch ? 'flex' : 'none';
+    renderPapers();
+}
+
+function clearSearch() {
+    document.getElementById('year-search').value = '';
+    currentSearch = '';
+    document.getElementById('search-clear').style.display = 'none';
+    renderPapers();
+}
+
+// ── SHARE ──
+function sharesite() {
+    const url = 'https://stucet.vercel.app/';
+    const text = `📚 STUCET – All EAPCET past papers in one place!\nFind papers by year, date & shift for AP & TS.\n${url}`;
+
+    if (navigator.share) {
+        navigator.share({ title: 'STUCET – EAPCET Papers', text, url }).catch(() => {});
+    } else {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast();
+        }).catch(() => {
+            // fallback: copy just URL
+            const input = document.createElement('input');
+            input.value = url;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            showToast();
+        });
+    }
+}
+
+function showToast() {
+    const toast = document.getElementById('share-toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// ── STATE ──
 function filterState(state, navEl) {
     currentState = state;
 
-    // Update hero buttons
     document.querySelectorAll('.state-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.state-btn').forEach(b => {
         if (b.classList.contains(state.toLowerCase())) b.classList.add('active');
     });
 
-    // Update badge
     const badge = document.getElementById('active-badge');
     badge.textContent = state;
     badge.className = 'state-badge ' + state.toLowerCase();
 
-    // Update nav
     document.getElementById('nav-ap').className = state === 'AP' ? 'active-ap' : '';
     document.getElementById('nav-ts').className = state === 'TS' ? 'active-ts' : '';
 
@@ -204,20 +324,45 @@ function filterState(state, navEl) {
     document.getElementById('papers').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// 🔧 CLEAN LINK (removes # and invalid stuff)
+// 🔧 CLEAN LINK
 function cleanLink(link) {
     if (!link) return '';
     return link.replace(/^#/, '').trim();
 }
 
+// ── RENDER ──
 function renderPapers() {
     const container = document.getElementById('papers-container');
-    const data = papersData[currentState] || [];
+    const searchLabel = document.getElementById('search-label');
+    let data = papersData[currentState] || [];
+
+    // Filter by search year
+    if (currentSearch) {
+        data = data.filter(g => String(g.year).includes(currentSearch));
+        if (data.length > 0) {
+            searchLabel.style.display = 'block';
+            const total = data.reduce((sum, g) => sum + g.papers.length, 0);
+            searchLabel.textContent = `Found ${total} paper${total !== 1 ? 's' : ''} for "${currentSearch}"`;
+        } else {
+            searchLabel.style.display = 'block';
+            searchLabel.textContent = `No papers found for year "${currentSearch}"`;
+        }
+    } else {
+        searchLabel.style.display = 'none';
+    }
+
     container.innerHTML = '';
+
+    if (data.length === 0) {
+        container.innerHTML = `<div class="no-results">No papers found. Try a different year.</div>`;
+        return;
+    }
 
     data.forEach((yearGroup, idx) => {
         const div = document.createElement('div');
-        div.className = 'year-group' + (idx === 0 ? ' open' : '');
+        // Auto-open if search is active (fewer results), else only open first
+        const shouldOpen = currentSearch ? true : idx === 0;
+        div.className = 'year-group' + (shouldOpen ? ' open' : '');
         div.style.animationDelay = (idx * 0.07) + 's';
 
         const count = yearGroup.papers.length;
@@ -235,9 +380,11 @@ function renderPapers() {
           ${yearGroup.papers.map(p => {
             const link = cleanLink(p.link);
             const isValid = link.startsWith('http');
+            const paperKey = makePaperKey(currentState, yearGroup.year, p.date, p.shift);
+            const count = getDownloadCount(paperKey);
 
             return `
-              <div class="paper-row">
+              <div class="paper-row" data-paper-key="${paperKey}">
                 <div class="paper-info">
                   <span class="paper-name">${p.date}</span>
                   <span class="paper-shift">
@@ -246,7 +393,8 @@ function renderPapers() {
                 </div>
 
                 <div class="btn-group">
-                  
+                  ${count > 0 ? `<span class="dl-count">${formatCount(count)}</span>` : `<span class="dl-count" style="opacity:0">${formatCount(count)}</span>`}
+
                   <!-- OPEN BUTTON -->
                   <a 
                     href="${isValid ? link : '#'}"
@@ -261,8 +409,9 @@ function renderPapers() {
                     href="${isValid ? driveDownloadLink(link) : '#'}"
                     ${isValid ? 'target="_blank"' : ''}
                     class="dl-btn"
+                    onclick="incrementDownload('${paperKey}')"
                   >
-                    Download
+                    ↓ Download
                   </a>
 
                 </div>
@@ -307,7 +456,6 @@ async function submitPaper() {
     const success = await savePaperToDB({ state, year: String(year), date, shift, drive_link: link });
 
     if (success) {
-        // Also add to local data so it shows immediately
         let yearGroup = papersData[state].find(g => g.year === year);
         if (!yearGroup) {
             yearGroup = { year, papers: [] };
@@ -326,6 +474,8 @@ async function submitPaper() {
 
 // ── INIT ──
 async function init() {
+    await loadDownloadCounts();
+
     const dbPapers = await loadPapersFromDB();
 
     dbPapers.forEach(p => {

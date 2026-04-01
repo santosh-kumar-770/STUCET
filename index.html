@@ -48,7 +48,40 @@
                 Papers
                 <span class="state-badge ts" id="active-badge">TS</span>
             </div>
+
+            <!-- SEARCH + SHARE ROW -->
+            <div class="search-share-row">
+                <div class="search-bar-wrapper">
+                    <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input
+                        type="number"
+                        id="year-search"
+                        class="search-bar"
+                        placeholder="Search by year e.g. 2023"
+                        min="2000"
+                        max="2030"
+                        oninput="handleSearch(this.value)"
+                    />
+                    <button class="search-clear" id="search-clear" onclick="clearSearch()" style="display:none;">✕</button>
+                </div>
+
+                <!-- SHARE BUTTON -->
+                <button class="share-btn" onclick="sharesite()">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                    </svg>
+                    Share
+                </button>
+            </div>
         </div>
+
+        <!-- SEARCH RESULT LABEL -->
+        <div id="search-label" class="search-label" style="display:none;"></div>
+
         <div id="papers-container"></div>
     </section>
 
@@ -110,6 +143,10 @@
             </div>
         </div>
     </div>
+
+    <!-- SHARE TOAST -->
+    <div id="share-toast" class="share-toast">🔗 Link copied!</div>
+
     <script src="script.js"></script>
     <script defer src="/_vercel/insights/script.js"></script>
 </body>
