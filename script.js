@@ -281,7 +281,7 @@ function sharesite() {
     const text = `📚 STUCET – All EAPCET past papers in one place!\nFind papers by year, date & shift for AP & TS.\n${url}`;
 
     if (navigator.share) {
-        navigator.share({ title: 'STUCET – EAPCET Papers', text, url }).catch(() => {});
+        navigator.share({ title: 'STUCET – EAPCET Papers', text, url }).catch(() => { });
     } else {
         navigator.clipboard.writeText(text).then(() => {
             showToast();
@@ -496,3 +496,138 @@ async function init() {
 }
 
 init();
+
+// ── REVIEWS ENGINE ──
+const STORAGE_KEY = 'stucet_reviews';
+
+const DEFAULT_REVIEWS = [
+    { name: "Sai Teja", college: "JNTU Kakinada", rating: 5, text: "Found all my papers in one place. Saved me so much time before the exam!", avatar: "ST" },
+    { name: "Priya Reddy", college: "Osmania University", rating: 5, text: "Best site for EAPCET prep. Clean, fast, no ads — exactly what students need.", avatar: "PR" },
+    { name: "Arjun Varma", college: "NIT Warangal", rating: 4, text: "Great collection of past papers. The year-wise filter is super useful.", avatar: "AV" },
+    { name: "Divya Sri", college: "BITS Hyderabad", rating: 5, text: "Used this the night before my exam and it actually helped a lot. Thank you!", avatar: "DS" },
+    { name: "Kiran Kumar", college: "MVSR Engineering", rating: 5, text: "Simple and to the point. No unnecessary stuff, just the papers.", avatar: "KK" },
+    { name: "Harsha Vardhan", college: "CVR College", rating: 4, text: "Really helpful for last-minute revision. Shift-wise organization is great.", avatar: "HV" },
+];
+
+function getReviews() {
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        const userReviews = stored ? JSON.parse(stored) : [];
+        return [...DEFAULT_REVIEWS, ...userReviews];
+    } catch { return DEFAULT_REVIEWS; }
+}
+
+function saveReview(review) {
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        const userReviews = stored ? JSON.parse(stored) : [];
+        userReviews.push(review);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(userReviews));
+    } catch { }
+}
+
+function getInitials(name) {
+    return name.trim().split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+const AVATAR_COLORS = [
+    ['#6c8ef7', '#1a1e2e'], ['#a78bfa', '#1a1e2e'], ['#34d399', '#0b1a14'],
+    ['#fbbf24', '#1a1400'], ['#f87171', '#1a0a0a'], ['#60a5fa', '#0a1020'],
+    ['#FF6B35', '#fff'], ['#2B7EFF', '#fff'],
+];
+
+function avatarColor(name) {
+    let h = 0;
+    for (let c of name) h = (h * 31 + c.charCodeAt(0)) & 0xffff;
+    return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+
+function renderStars(n) {
+    return Array.from({ length: 5 }, (_, i) =>
+        `<span style="color:${i < n ? '#fbbf24' : '#d1d5db'}; font-size:0.85rem;">★</span>`
+    ).join('');
+}
+
+function buildCard(r) {
+    const [bg, fg] = avatarColor(r.name);
+    return `
+        <div class="review-card">
+            <div class="rc-top">
+                <div class="rc-avatar" style="background:${bg}; color:${fg}">${r.avatar || getInitials(r.name)}</div>
+                <div>
+                    <div class="rc-name">${r.name}</div>
+                    <div class="rc-college">${r.college}</div>
+                </div>
+                <div class="rc-stars">${renderStars(r.rating)}</div>
+            </div>
+            <div class="rc-text">"${r.text}"</div>
+        </div>`;
+}
+
+function renderReviews() {
+    const reviews = getReviews();
+    const track = document.getElementById('reviews-track');
+    // duplicate for infinite scroll
+    const html = [...reviews, ...reviews].map(buildCard).join('');
+    track.innerHTML = html;
+    // set animation duration based on count
+    const duration = reviews.length * 4;
+    track.style.animationDuration = duration + 's';
+}
+
+// ── STAR PICKER ──
+let selectedRating = 0;
+document.addEventListener('DOMContentLoaded', () => {
+    renderReviews();
+    document.querySelectorAll('.star').forEach(star => {
+        star.addEventListener('mouseover', () => highlightStars(+star.dataset.v));
+        star.addEventListener('mouseout', () => highlightStars(selectedRating));
+        star.addEventListener('click', () => { selectedRating = +star.dataset.v; highlightStars(selectedRating); });
+    });
+});
+
+function highlightStars(n) {
+    document.querySelectorAll('.star').forEach(s => {
+        s.classList.toggle('active', +s.dataset.v <= n);
+    });
+}
+
+// ── REVIEW MODAL ──
+function openReviewModal() {
+    document.getElementById('review-modal').classList.add('show');
+}
+function closeReviewModal() {
+    document.getElementById('review-modal').classList.remove('show');
+}
+function closeReviewModalOutside(e) {
+    if (e.target.id === 'review-modal') closeReviewModal();
+}
+
+function submitReview() {
+    const name = document.getElementById('r-name').value.trim();
+    const college = document.getElementById('r-college').value.trim();
+    const text = document.getElementById('r-text').value.trim();
+
+    if (!name) return alert('Please enter your name.');
+    if (!college) return alert('Please enter your college or city.');
+    if (!selectedRating) return alert('Please select a rating.');
+    if (!text) return alert('Please write a short review.');
+
+    const review = { name, college, rating: selectedRating, text, avatar: getInitials(name) };
+    saveReview(review);
+    renderReviews();
+    closeReviewModal();
+
+    // reset form
+    document.getElementById('r-name').value = '';
+    document.getElementById('r-college').value = '';
+    document.getElementById('r-text').value = '';
+    selectedRating = 0;
+    highlightStars(0);
+
+    // show toast
+    const toast = document.getElementById('share-toast');
+    toast.textContent = '⭐ Review submitted! Thank you.';
+    toast.classList.add('show');
+    setTimeout(() => { toast.classList.remove('show'); toast.textContent = '🔗 Link copied!'; }, 3000);
+}

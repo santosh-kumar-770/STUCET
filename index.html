@@ -21,7 +21,9 @@
             <a href="#" onclick="setActive(this)">Home</a>
             <a href="#" class="active-ap" id="nav-ap" onclick="filterState('AP', this)">AP</a>
             <a href="#" class="active-ts" id="nav-ts" onclick="filterState('TS', this)">TS</a>
-            <a href="practice.html" style="padding:8px 18px; background:linear-gradient(135deg,#6c8ef7,#a78bfa); border-radius:20px; color:#fff; font-weight:600; font-size:0.85rem; text-decoration:none; box-shadow:0 4px 16px rgba(108,142,247,0.3);">⚡ Practice</a>
+            <a href="practice.html"
+                style="padding:8px 18px; background:linear-gradient(135deg,#6c8ef7,#a78bfa); border-radius:20px; color:#fff; font-weight:600; font-size:0.85rem; text-decoration:none; box-shadow:0 4px 16px rgba(108,142,247,0.3);">⚡
+                Practice</a>
         </div>
     </nav>
 
@@ -42,6 +44,26 @@
         </div>
     </section>
 
+    <!-- PRACTICE CTA BANNER -->
+    <section style="padding: 0 5%; margin-bottom: 12px;">
+        <a href="practice.html" class="practice-banner">
+            <div style="display:flex; align-items:center; gap:16px;">
+                <div class="practice-banner-icon">⚡</div>
+                <div>
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                        <span style="font-family:'Syne',sans-serif; font-weight:700; font-size:1rem;">Practice
+                            Quiz</span>
+                        <span class="new-badge">New</span>
+                    </div>
+                    <p style="margin:0; font-size:0.82rem; opacity:0.55; line-height:1.4;">
+                        Randomized questions from all years · Physics, Chemistry &amp; Maths · TS &amp; AP
+                    </p>
+                </div>
+            </div>
+            <div class="practice-banner-cta">Start Quiz <span>→</span></div>
+        </a>
+    </section>
+
     <!-- PAPERS -->
     <section class="papers-section" id="papers">
         <div class="section-header">
@@ -49,40 +71,32 @@
                 Papers
                 <span class="state-badge ts" id="active-badge">TS</span>
             </div>
-
-            <!-- SEARCH + SHARE ROW -->
             <div class="search-share-row">
                 <div class="search-bar-wrapper">
-                    <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none"
+                        stroke="currentColor" stroke-width="2.5">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.35-4.35" />
                     </svg>
-                    <input
-                        type="number"
-                        id="year-search"
-                        class="search-bar"
-                        placeholder="Search by year e.g. 2023"
-                        min="2000"
-                        max="2030"
-                        oninput="handleSearch(this.value)"
-                    />
-                    <button class="search-clear" id="search-clear" onclick="clearSearch()" style="display:none;">✕</button>
+                    <input type="number" id="year-search" class="search-bar" placeholder="Search by year e.g. 2023"
+                        min="2000" max="2030" oninput="handleSearch(this.value)" />
+                    <button class="search-clear" id="search-clear" onclick="clearSearch()"
+                        style="display:none;">✕</button>
                 </div>
-
-                <!-- SHARE BUTTON -->
                 <button class="share-btn" onclick="sharesite()">
-                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <circle cx="18" cy="5" r="3" />
+                        <circle cx="6" cy="12" r="3" />
+                        <circle cx="18" cy="19" r="3" />
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
                     </svg>
                     Share
                 </button>
             </div>
         </div>
-
-        <!-- SEARCH RESULT LABEL -->
         <div id="search-label" class="search-label" style="display:none;"></div>
-
         <div id="papers-container"></div>
     </section>
 
@@ -91,25 +105,43 @@
         <div class="contribute">
             <h2>Want to help students?</h2>
             <p>Add extra question papers you have and help thousands of students prepare better.</p>
-            <button class="add-btn" onclick="openModal()">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <path d="M12 5v14M5 12h14" />
-                </svg>
-                Add Papers
-            </button>
+            <div class="contribute-btns">
+                <button class="add-btn" onclick="openModal()">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    Add Papers
+                </button>
+                <button class="review-btn" onclick="openReviewModal()">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path
+                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                    Leave a Review
+                </button>
+            </div>
         </div>
     </section>
 
-    <footer>
-        © 2025 STUCET · Made for students, by students
-    </footer>
+    <!-- REVIEWS SECTION -->
+    <section class="reviews-section">
+        <div class="reviews-header">
+            <div class="reviews-title">What students say</div>
+            <div class="reviews-sub">Real feedback from EAPCET aspirants</div>
+        </div>
+        <div class="reviews-track-wrapper">
+            <div class="reviews-track" id="reviews-track"></div>
+        </div>
+    </section>
 
-    <!-- MODAL -->
+    
+    <!-- ADD PAPER MODAL -->
     <div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
         <div class="modal">
             <h3>Add Question Paper</h3>
             <p>Fill in the details and submit. Our team will verify and publish it.</p>
-
             <div class="form-group">
                 <label>STATE</label>
                 <select id="m-state">
@@ -137,10 +169,46 @@
                 <label>DRIVE LINK / URL</label>
                 <input type="url" id="m-link" placeholder="https://drive.google.com/..." />
             </div>
-
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeModal()">Cancel</button>
                 <button class="btn-submit" onclick="submitPaper()">Submit Paper</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- REVIEW MODAL -->
+    <div class="modal-overlay" id="review-modal" onclick="closeReviewModalOutside(event)">
+        <div class="modal">
+            <h3>Leave a Review ⭐</h3>
+            <p>Tell other students what you think of STUCET.</p>
+            <div class="form-group">
+                <label>YOUR NAME</label>
+                <input type="text" id="r-name" placeholder="e.g. Ravi Kumar" maxlength="40" />
+            </div>
+            <div class="form-group">
+                <label>COLLEGE / CITY</label>
+                <input type="text" id="r-college" placeholder="e.g. JNTU Hyderabad" maxlength="50" />
+            </div>
+            <div class="form-group">
+                <label>RATING</label>
+                <div class="star-picker" id="star-picker">
+                    <span class="star" data-v="1">★</span>
+                    <span class="star" data-v="2">★</span>
+                    <span class="star" data-v="3">★</span>
+                    <span class="star" data-v="4">★</span>
+                    <span class="star" data-v="5">★</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>YOUR REVIEW</label>
+                <textarea id="r-text" placeholder="How did STUCET help you prepare?" maxlength="180" style="padding:10px 14px; border:1.5px solid var(--border); border-radius:10px;
+                    font-family:'DM Sans',sans-serif; font-size:0.9rem; background:var(--bg);
+                    color:var(--ink); outline:none; resize:vertical; min-height:80px; width:100%;
+                    transition:border-color 0.2s;"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeReviewModal()">Cancel</button>
+                <button class="btn-submit" onclick="submitReview()">Submit Review</button>
             </div>
         </div>
     </div>
@@ -148,6 +216,17 @@
     <!-- SHARE TOAST -->
     <div id="share-toast" class="share-toast">🔗 Link copied!</div>
 
+    <footer>
+        <span>© 2026 STUCET · Made for students, by students</span>
+        <a href="mailto:stucet@gmail.com" class="footer-email">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"
+                style="flex-shrink:0;">
+                <rect x="2" y="4" width="20" height="16" rx="3" />
+                <path d="m2 7 10 7 10-7" />
+            </svg>
+            contact mail
+        </a>
+    </footer>
     <script src="script.js"></script>
     <script defer src="/_vercel/insights/script.js"></script>
 </body>
